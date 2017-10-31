@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: redis-cluster-02
+  namespace: bj-cloudgo
+  labels:
+    name: redis-cluster-02
+spec:
+  replicas: 1
+  selector:
+    name: redis-cluster-02
+  template:
+    metadata:
+      labels:
+        name: redis-cluster-02
+    spec:
+      hostNetwork: true
+      nodeSelector:
+        redis-cluster: master02
+      containers:
+      - image: 10.16.117.252/redis-cluster/redis-cluster:1.1.4.4
+        name: redis-cluster-02
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8002
+          hostPort: 8002
+        - containerPort: 8005
+          hostPort: 8005
+        command: ["/bin/bash","-c","/opt/run.sh cluster-02"]
+        volumeMounts:
+        - name: redis-cluster-02
+          mountPath: "/opt/redis_cluster"
+      volumes:
+        - name: redis-cluster-02
+          rbd:
+            monitors:
+              - 10.130.129.231:6789
+              - 10.130.129.232:6789
+              - 10.130.129.232:6789
+            pool: cloudgo
+            image: redis-cluster-02
+            user: admin
+            keyring:
+            secretRef:
+            fsType: ext4
